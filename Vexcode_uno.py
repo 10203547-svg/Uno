@@ -90,8 +90,17 @@ import random
 # Initialize Brain
 brain = Brain()
 
+# Initialize Motors (Ports 1 and 5)
+try:
+    motor1 = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+    motor5 = Motor(Ports.PORT5, GearSetting.RATIO_18_1, True)
+except Exception:
+    motor1 = None
+    motor5 = None
+
 COLORS = ["Red", "Yellow", "Green", "Blue"]
 VALUES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "Skip", "Reverse", "Draw Two"]
+TYPES = ["NUMBER", "+2 ATK", "+4 ATK"]
 
 # ==========================================
 # CARD CLASS
@@ -101,235 +110,20 @@ class Card:
         self.color = color
         self.value = value
 
-def draw_card_full_screen(card_str, color_code):
-    brain.screen.clear_screen()
-    if color_code == 'R': brain.screen.set_fill_color(Color.RED)
-    elif color_code == 'G': brain.screen.set_fill_color(Color.GREEN)
-    elif color_code == 'B': brain.screen.set_fill_color(Color.BLUE)
-    elif color_code == 'Y': brain.screen.set_fill_color(Color.YELLOW)
-    else: brain.screen.set_fill_color(Color.BLACK)
-    brain.screen.set_pen_color(Color.WHITE)
-    for i in range(5):
-        brain.screen.draw_rectangle(0+i, 0+i, 159-(i*2), 107-(i*2))
-   
-    card = card_str[1:]
-    if card == "0":
-        for i in range(15):
-            brain.screen.draw_rectangle(20+i, 20+i, 119-(i*2), 67-(i*2))
-    elif card == "8":
-        for i in range(15):
-            brain.screen.draw_rectangle(20+i, 20+i, 119-(i*2), 67-(i*2))
-        for i in range(15):
-            brain.screen.draw_line(72+i, 20, 72+i, 85)
-    elif card == "1":
-        for i in range(15):
-            brain.screen.draw_line(20, 47+i, 139, 47+i)
-    elif card == "3":
-        for i in range(15):
-            brain.screen.draw_line(20, 20+i, 139, 20+i)
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(125+i, 20, 125+i, 87)
-    elif card == "2":
-        for i in range(15):
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-            brain.screen.draw_line(20, 20+i, 72, 20+i)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(72, 73+i, 139, 73+i)
-            brain.screen.draw_line(125+i, 20, 125+i, 87)
-        for i in range(3):
-            brain.screen.draw_line(145+i, 20, 145+i, 87)
-    elif card == "5":
-        for i in range(15):
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-            brain.screen.draw_line(20, 73+i, 72, 73+i)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(72, 20+i, 139, 20+i)
-            brain.screen.draw_line(125+i, 20, 125+i, 87)
-        for i in range(3):
-            brain.screen.draw_line(145+i, 20, 145+i, 87)
-    elif card == "6":
-        for i in range(15):
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-            brain.screen.draw_line(20, 73+i, 72, 73+i)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(72, 20+i, 139, 20+i)
-            brain.screen.draw_line(125+i, 20, 125+i, 87)
-            brain.screen.draw_line(72, 73+i, 139, 73+i)
-        for i in range(3):
-            brain.screen.draw_line(145+i, 20, 145+i, 87)
-    elif card == "9":
-        for i in range(15):
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-            brain.screen.draw_line(20, 20+i, 72, 20+i)
-            brain.screen.draw_line(20, 73+i, 72, 73+i)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(72, 20+i, 139, 20+i)
-            brain.screen.draw_line(125+i, 20, 125+i, 87)
-        for i in range(3):
-            brain.screen.draw_line(145+i, 20, 145+i, 87)
-    elif card == "4" and "D" not in card_str:
-        for i in range(15):
-            brain.screen.draw_line(20, 20+i, 72, 20+i)
-            brain.screen.draw_line(20, 73+i, 72, 73+i)
-            brain.screen.draw_line(72+i, 20, 72+i, 87)
-            brain.screen.draw_line(72, 20+i, 139, 20+i)
-    elif card == "7":
-        for i in range(15):
-            brain.screen.draw_line(20, 20+i, 139, 20+i)
-            brain.screen.draw_line(20+i, 20, 20+i, 87)
-    elif card == "Rv":
-        for i in range(15):
-            brain.screen.draw_line(62+i, 30, 62+i, 87)
-            brain.screen.draw_line(69, 20, 52+i, 40)
-            brain.screen.draw_line(69, 20, 82-i, 40)
-            brain.screen.draw_line(82+i, 20, 82+i, 77)
-            brain.screen.draw_line(89, 87, 74+i, 67)
-            brain.screen.draw_line(89, 87, 104-i, 67)
-    elif card == "S":
-        for i in range(15):
-            brain.screen.draw_rectangle(40+i, 20+i, 82-(i*2), 67-(i*2))
-        for i in range(15):
-            brain.screen.draw_line(52+i, 20, 92+i, 80)
-    elif card == "D2":
-        brain.screen.set_fill_color(Color.WHITE)
-        for i in range(40):
-            brain.screen.draw_circle(60+i, 42+(i/2), 30)
-        if color_code == 'R': brain.screen.set_fill_color(Color.RED)
-        elif color_code == 'G': brain.screen.set_fill_color(Color.GREEN)
-        elif color_code == 'B': brain.screen.set_fill_color(Color.BLUE)
-        elif color_code == 'Y': brain.screen.set_fill_color(Color.YELLOW)
-        brain.screen.draw_rectangle(47, 32, 40, 25)
-        brain.screen.draw_rectangle(73, 52, 40, 25)
-        for i in range(5):
-            brain.screen.draw_line(18+i, 85, 18+i, 95)
-            brain.screen.draw_line(14, 88+i, 26, 88+i)
-            brain.screen.draw_line(10+i, 66, 10+i, 79)
-            brain.screen.draw_line(10, 66+i, 20, 66+i)
-            brain.screen.draw_line(18+i, 66, 18+i, 79)
-            brain.screen.draw_line(20, 75+i, 30, 75+i)
-            brain.screen.draw_line(26+i, 66, 26+i, 79)
-
-            brain.screen.draw_line(159-18-i, 107-85, 159-18-i, 107-95)
-            brain.screen.draw_line(159-14, 107-88-i, 159-26, 107-88-i)
-            brain.screen.draw_line(159-10-i, 107-66, 159-10-i, 107-79)
-            brain.screen.draw_line(159-10, 107-66-i, 159-20, 107-66-i)
-            brain.screen.draw_line(159-18-i, 107-66, 159-18-i, 107-79)
-            brain.screen.draw_line(159-20, 107-75-i, 159-30, 107-75-i)
-            brain.screen.draw_line(159-26-i, 107-66, 159-26-i, 107-79)
-    elif card_str == "W":
-        brain.screen.set_fill_color(Color.BLUE)
-        brain.screen.draw_rectangle(50, 20, 30, 32)
-        brain.screen.set_fill_color(Color.RED)
-        brain.screen.draw_rectangle(50, 52, 30, 32)
-        brain.screen.set_fill_color(Color.GREEN)
-        brain.screen.draw_rectangle(80, 20, 30, 32)
-        brain.screen.set_fill_color(Color.YELLOW)
-        brain.screen.draw_rectangle(80, 52, 30, 32)
-        brain.screen.set_fill_color(Color.TRANSPARENT)
-        brain.screen.set_pen_width(3)
-        for i in range(15):
-            brain.screen.draw_circle(80, 52, 30-(i/5))
-        brain.screen.set_pen_color(Color.BLACK)
-        for i in range(65):
-            brain.screen.draw_circle(80, 52, 31+(i/5))
-        brain.screen.set_pen_width(1)
-    elif card_str == "D4":
-        brain.screen.set_fill_color(Color.YELLOW)
-        brain.screen.draw_rectangle(78, 42, 40, 25)
-        brain.screen.set_fill_color(Color.GREEN)
-        brain.screen.draw_rectangle(60, 28, 40, 25)
-        brain.screen.set_fill_color(Color.BLUE)
-        brain.screen.draw_rectangle(42, 42, 40, 25)
-        brain.screen.set_fill_color(Color.RED)
-        brain.screen.draw_rectangle(60, 56, 40, 25)
-        for i in range(5):
-            brain.screen.draw_line(18+i, 85, 18+i, 95)
-            brain.screen.draw_line(14, 88+i, 26, 88+i)
-            brain.screen.draw_line(10, 75+i, 20, 75+i)
-            brain.screen.draw_line(16+i, 75, 16+i, 66)
-            brain.screen.draw_line(10, 66+i, 30, 66+i)
-
-            brain.screen.draw_line(159-18-i, 107-85, 159-18-i, 107-95)
-            brain.screen.draw_line(159-14, 107-88-i, 159-26, 107-88-i)
-            brain.screen.draw_line(159-10, 107-75-i, 159-20, 107-75-i)
-            brain.screen.draw_line(159-16-i, 107-75, 159-16-i, 107-66)
-            brain.screen.draw_line(159-10, 107-66-i, 159-30, 107-66-i)
-    else:
-        brain.screen.set_fill_color(Color.RED)
-        brain.screen.set_pen_color(Color.RED)
-        for i in range(40):
-            brain.screen.draw_circle(60+i, 42+(i/2), 30)
-        brain.screen.set_pen_color(Color.YELLOW)
-        for i in range(5):
-            brain.screen.draw_line(75, 50+i-5, 85, 50+i-5)
-            brain.screen.draw_line(75, 50+i+5, 85, 50+i+5)
-            brain.screen.draw_line(75, 50+i+5, 85, 50+i-5)
-
-            brain.screen.draw_line(75, 50+i-15, 85, 50+i-15)
-            brain.screen.draw_line(75+(i/2), 50-15, 75+(i/2), 50-25)
-            brain.screen.draw_line(83+(i/2), 50-15, 83+(i/2), 50-25)
-            brain.screen.draw_line(75, 50+i-25, 85, 50+i-25)
-
-            brain.screen.draw_line(75, 50+i+15, 85, 50+i+15)
-            brain.screen.draw_line(83+(i/2), 50+15, 83+(i/2), 50+25)
-            brain.screen.draw_line(75, 50+i+25, 85, 50+i+25)
-    brain.screen.set_fill_color(Color.TRANSPARENT)
-
-
-    def to_short(self):
-        col_code = str(self.color)[0] if self.color in COLORS else "W"
-        if str(self.value) == "Draw Two":
-            val_code = "+2"
-        elif str(self.value) == "Draw Four":
-            val_code = "+4"
-        elif str(self.value) == "Reverse":
-            val_code = "R"
-        elif str(self.value) == "Skip":
-            val_code = "S"
-        elif str(self.value) == "Wild":
-            val_code = "W"
-        else:
-            val_code = str(self.value)[0]
-        return col_code + val_code
+    def short_text(self):
+        c = str(self.color)[0] if self.color in COLORS else "W"
+        v = str(self.value)
+        if v == "Draw Two": v = "+2"
+        elif v == "Draw Four": v = "+4"
+        elif v == "Reverse": v = "R"
+        elif v == "Skip": v = "S"
+        elif v == "Wild": v = "W"
+        else: v = v[0]
+        return (c + v)[:3]
 
 
 # ==========================================
-# SCREEN RENDERER (MAX 12 CHARS/LINE)
-# ==========================================
-def get_vex_color(color_name):
-    if color_name == "Red":
-        return Color.RED
-    elif color_name == "Yellow":
-        return Color.YELLOW
-    elif color_name == "Green":
-        return Color.GREEN
-    elif color_name == "Blue":
-        return Color.BLUE
-    elif color_name == "Wild":
-        return Color.PURPLE
-    return Color.BLACK
-
-
-def render_screen(color_name, lines):
-    bg_color = get_vex_color(color_name)
-    text_color = Color.BLACK if color_name == "Yellow" else Color.WHITE
-
-    try:
-        brain.screen.clear_screen(bg_color)
-        brain.screen.set_fill_color(bg_color)
-        brain.screen.set_pen_color(text_color)
-    except Exception:
-        brain.screen.clear_screen()
-
-    for idx, text in enumerate(lines[:5]):
-        formatted = str(text)[:12]
-        brain.screen.set_cursor(idx + 1, 1)
-        brain.screen.print(formatted)
-
-
-# ==========================================
-# DECK & RULES
+# CUSTOM SHUFFLE (MicroPython safe)
 # ==========================================
 def shuffle_list(lst):
     for i in range(len(lst) - 1, 0, -1):
@@ -337,41 +131,49 @@ def shuffle_list(lst):
         lst[i], lst[j] = lst[j], lst[i]
 
 
-def build_deck():
+# ==========================================
+# DUAL MOTOR DRIVE (CENTER AND BACK)
+# ==========================================
+def drive_wheels():
+    if motor1 and motor5:
+        try:
+            motor1.spin(FORWARD, 50, PERCENT)
+            motor5.spin(FORWARD, 50, PERCENT)
+            wait(1, SECONDS)
+
+            motor1.stop(BRAKE)
+            motor5.stop(BRAKE)
+            wait(0.2, SECONDS)
+
+            motor1.spin(REVERSE, 50, PERCENT)
+            motor5.spin(REVERSE, 50, PERCENT)
+            wait(1, SECONDS)
+
+            motor1.stop(BRAKE)
+            motor5.stop(BRAKE)
+        except Exception:
+            pass
+
+
+# ==========================================
+# DECK BUILDER & GAME RULES
+# ==========================================
+def create_deck():
     deck = []
-    for color in COLORS:
-        deck.append(Card(color, 0))
-        for val in VALUES[1:]:
-            deck.append(Card(color, val))
-            deck.append(Card(color, val))
+    for c in COLORS:
+        deck.append(Card(c, 0))
+        for v in VALUES[1:]:
+            deck.append(Card(c, v))
+            deck.append(Card(c, v))
     for _ in range(4):
         deck.append(Card("Wild", "Wild"))
         deck.append(Card("Wild", "Draw Four"))
+    
     shuffle_list(deck)
     return deck
 
 
-def draw_card(deck, discard_pile):
-    if not deck:
-        if len(discard_pile) > 1:
-            top_card = discard_pile.pop()
-            deck.extend(discard_pile)
-            discard_pile.clear()
-            discard_pile.append(top_card)
-            shuffle_list(deck)
-        else:
-            return None
-    return deck.pop()
-
-
-def can_play(card, top_card, active_color, pending_draws):
-    if pending_draws > 0:
-        if str(top_card.value) == "Draw Two" and str(card.value) == "Draw Two":
-            return True
-        if str(top_card.value) == "Draw Four" and str(card.value) == "Draw Four":
-            return True
-        return False
-
+def can_play(card, top_card, active_color):
     if card.color == "Wild" or card.color == active_color:
         return True
     if card.value == top_card.value:
@@ -379,148 +181,395 @@ def can_play(card, top_card, active_color, pending_draws):
     return False
 
 
-def get_playable_indices(hand, top_card, active_color, pending_draws):
-    return [i for i, c in enumerate(hand) if can_play(c, top_card, active_color, pending_draws)]
+def get_text_color(color_name):
+    if color_name == "Red": return Color.RED
+    elif color_name == "Yellow": return Color.YELLOW
+    elif color_name == "Green": return Color.GREEN
+    elif color_name == "Blue": return Color.BLUE
+    elif color_name == "Wild": return Color.PURPLE
+    return Color.WHITE
 
 
-# ==========================================
-# FULLY AUTONOMOUS MULTI-ROBOT GAME LOOP
-# ==========================================
-def run_autonomous_multi_robot_game():
-    num_robots = 3  # Robot 1, Robot 2, Robot 3
-    deck = build_deck()
-    discard_pile = []
-
-    # Deal 7 cards to each robot
-    hands = [[draw_card(deck, discard_pile) for _ in range(7)] for _ in range(num_robots)]
-
-    top_card = draw_card(deck, discard_pile)
-    while top_card and top_card.color == "Wild":
-        deck.append(top_card)
-        shuffle_list(deck)
-        top_card = draw_card(deck, discard_pile)
-
-    discard_pile.append(top_card)
-    active_color = top_card.color if top_card else "Red"
-    pending_draws = 0
-    current_bot = 0
-    direction = 1
-
-    lines = [
-        "GAME START",
-        "ROBOTS: " + str(num_robots),
-        "TOP: " + top_card.to_short(),
-        "CLR: " + active_color[:3],
-        "PLAYING..."
-    ]
-    render_screen(active_color, lines)
-    wait(2, SECONDS)
+def wait_for_check():
+    """Waits for physical Check button press or screen touch tap."""
+    while True:
+        try:
+            if hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing():
+                break
+        except Exception:
+            pass
+        try:
+            if brain.screen.pressing():
+                break
+        except Exception:
+            pass
+        wait(50, MSEC)
 
     while True:
-        bot_id = current_bot + 1
-        hand = hands[current_bot]
-        top_card = discard_pile[-1]
-        playable = get_playable_indices(hand, top_card, active_color, pending_draws)
+        pressed = False
+        try:
+            if hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing():
+                pressed = True
+        except Exception:
+            pass
+        try:
+            if brain.screen.pressing():
+                pressed = True
+        except Exception:
+            pass
+        if not pressed:
+            break
+        wait(20, MSEC)
 
-        played_card = None
 
-        # 1. ATTACKED (+2 / +4) -> Draw penalty cards without physical movement
-        if pending_draws > 0 and not playable:
-            lines = [
-                "BOT " + str(bot_id) + " ATTACK",
-                "PENALTY +" + str(pending_draws),
-                "DRAWING...",
-                "CLR: " + active_color[:3],
-                "HAND: " + str(len(hand))
-            ]
-            render_screen("Red", lines)
+# ==========================================
+# INITIAL TOP CARD SELECTOR
+# ==========================================
+def select_initial_top_card():
+    """Allows user to set the table's initial top card and attack state."""
+    # Step 1: Select Color
+    c_idx = 0
+    while True:
+        try:
+            brain.screen.set_fill_color(Color.BLACK)
+            brain.screen.clear_screen()
+            brain.screen.set_pen_color(Color.WHITE)
+            brain.screen.set_cursor(1, 1)
+            brain.screen.print("SET TOP CLR:")
 
-            for _ in range(pending_draws):
-                drawn = draw_card(deck, discard_pile)
-                if drawn:
-                    hand.append(drawn)
-            pending_draws = 0
-            wait(1.5, SECONDS)
+            c_name = COLORS[c_idx]
+            brain.screen.set_pen_color(get_text_color(c_name))
+            brain.screen.set_cursor(2, 1)
+            brain.screen.print(c_name.upper()[:12])
 
-        # 2. NO MATCH -> Draw 1 card without physical movement
-        elif not playable:
-            lines = [
-                "BOT " + str(bot_id) + " NO CARD",
-                "DRAWING...",
-                "TOP: " + top_card.to_short(),
-                "CLR: " + active_color[:3],
-                "HAND: " + str(len(hand))
-            ]
-            render_screen(active_color, lines)
+            brain.screen.set_pen_color(Color.YELLOW)
+            brain.screen.set_cursor(4, 1)
+            brain.screen.print("TAP=NEXT")
+            brain.screen.set_cursor(5, 1)
+            brain.screen.print("CHK=CONFIRM")
+        except Exception:
+            pass
 
-            drawn = draw_card(deck, discard_pile)
-            if drawn:
-                hand.append(drawn)
-                if can_play(drawn, top_card, active_color, 0):
-                    played_card = hand.pop()
-                    discard_pile.append(played_card)
-                    if str(played_card.value) == "Draw Two":
-                        pending_draws = 2
-                    elif str(played_card.value) == "Draw Four":
-                        pending_draws = 4
-                    active_color = random.choice(COLORS) if played_card.color == "Wild" else played_card.color
+        while True:
+            t_pressed = False
+            c_pressed = False
+            try:
+                if brain.screen.pressing(): t_pressed = True
+            except Exception: pass
+            try:
+                if hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): c_pressed = True
+            except Exception: pass
 
-                    lines = [
-                        "BOT " + str(bot_id) + " PLAYED",
-                        "CARD: " + played_card.to_short(),
-                        "TOP: " + played_card.to_short(),
-                        "CLR: " + active_color[:3],
-                        "HAND: " + str(len(hand))
-                    ]
-                    render_screen(active_color, lines)
-                    wait(1.5, SECONDS)
+            if t_pressed or c_pressed: break
+            wait(50, MSEC)
 
-        # 3. PLAY MATCHING CARD
-        else:
-            play_idx = playable[0]
-            played_card = hand.pop(play_idx)
-            discard_pile.append(played_card)
-
-            if str(played_card.value) == "Draw Two":
-                pending_draws += 2
-            elif str(played_card.value) == "Draw Four":
-                pending_draws += 4
-
-            active_color = random.choice(COLORS) if played_card.color == "Wild" else played_card.color
-
-            lines = [
-                "BOT " + str(bot_id) + " PLAYED",
-                "CARD: " + played_card.to_short(),
-                "TOP: " + played_card.to_short(),
-                "CLR: " + active_color[:3],
-                "HAND: " + str(len(hand))
-            ]
-            render_screen(active_color, lines)
-            wait(1.5, SECONDS)
-
-        # WIN CHECK
-        if len(hand) == 0:
-            lines = [
-                "= GAME OVER =",
-                "BOT " + str(bot_id) + " WINS!",
-                "UNO!",
-                "",
-                ""
-            ]
-            render_screen("Green", lines)
+        if c_pressed:
+            while hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): wait(20, MSEC)
+            selected_color = COLORS[c_idx]
             break
 
-        # ACTION CARD TURN ROTATION
-        skip_next = False
-        if played_card:
-            if str(played_card.value) == "Skip":
-                skip_next = True
-            elif str(played_card.value) == "Reverse":
-                direction *= -1
+        if t_pressed:
+            while brain.screen.pressing(): wait(20, MSEC)
+            c_idx = (c_idx + 1) % len(COLORS)
 
-        step = 2 if skip_next else 1
-        current_bot = (current_bot + (direction * step)) % num_robots
+    # Step 2: Select Card Type (NUMBER, +2 ATK, +4 ATK)
+    t_idx = 0
+    while True:
+        try:
+            brain.screen.set_fill_color(Color.BLACK)
+            brain.screen.clear_screen()
+            brain.screen.set_pen_color(Color.WHITE)
+            brain.screen.set_cursor(1, 1)
+            brain.screen.print("SET TOP TYPE:")
+
+            t_name = TYPES[t_idx]
+            brain.screen.set_cursor(2, 1)
+            brain.screen.print(t_name[:12])
+
+            brain.screen.set_pen_color(Color.YELLOW)
+            brain.screen.set_cursor(4, 1)
+            brain.screen.print("TAP=NEXT")
+            brain.screen.set_cursor(5, 1)
+            brain.screen.print("CHK=START")
+        except Exception:
+            pass
+
+        while True:
+            t_pressed = False
+            c_pressed = False
+            try:
+                if brain.screen.pressing(): t_pressed = True
+            except Exception: pass
+            try:
+                if hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): c_pressed = True
+            except Exception: pass
+
+            if t_pressed or c_pressed: break
+            wait(50, MSEC)
+
+        if c_pressed:
+            while hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): wait(20, MSEC)
+            selected_type = TYPES[t_idx]
+            break
+
+        if t_pressed:
+            while brain.screen.pressing(): wait(20, MSEC)
+            t_idx = (t_idx + 1) % len(TYPES)
+
+    # Convert selection into Card object & attack penalty
+    if selected_type == "+2 ATK":
+        return Card(selected_color, "Draw Two"), selected_color, 2
+    elif selected_type == "+4 ATK":
+        return Card("Wild", "Draw Four"), selected_color, 4
+    else:
+        return Card(selected_color, "Number"), selected_color, 0
 
 
-# Start Autonomous Game
-run_autonomous_multi_robot_game()
+# ==========================================
+# CARD PICKER INTERFACE
+# ==========================================
+def select_card_to_put_down(playable_cards):
+    """Allows cycling and choosing which card from the hand to put down."""
+    idx = 0
+    while True:
+        card = playable_cards[idx]
+        try:
+            brain.screen.set_fill_color(Color.BLACK)
+            brain.screen.clear_screen()
+
+            brain.screen.set_pen_color(Color.WHITE)
+            brain.screen.set_cursor(1, 1)
+            brain.screen.print("PICK TO PLAY")
+
+            brain.screen.set_pen_color(get_text_color(card.color))
+            brain.screen.set_cursor(2, 1)
+            brain.screen.print(("CARD:" + card.short_text())[:12])
+
+            brain.screen.set_pen_color(Color.WHITE)
+            brain.screen.set_cursor(3, 1)
+            brain.screen.print(("OPT " + str(idx+1) + "/" + str(len(playable_cards)))[:12])
+
+            brain.screen.set_pen_color(Color.YELLOW)
+            brain.screen.set_cursor(4, 1)
+            brain.screen.print("TAP=NEXT")
+            brain.screen.set_cursor(5, 1)
+            brain.screen.print("CHK=PUT DOWN")
+        except Exception:
+            pass
+
+        while True:
+            t_pressed = False
+            c_pressed = False
+            try:
+                if brain.screen.pressing(): t_pressed = True
+            except Exception: pass
+            try:
+                if hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): c_pressed = True
+            except Exception: pass
+
+            if t_pressed or c_pressed: break
+            wait(50, MSEC)
+
+        if c_pressed:
+            while hasattr(brain, "buttonCheck") and brain.buttonCheck.pressing(): wait(20, MSEC)
+            return card
+
+        if t_pressed:
+            while brain.screen.pressing(): wait(20, MSEC)
+            idx = (idx + 1) % len(playable_cards)
+
+
+# ==========================================
+# MAIN ROBOT PROGRAM
+# ==========================================
+def run_robot():
+    deck = create_deck()
+    
+    # 1. Deal 7 random cards to itself
+    hand = [deck.pop() for _ in range(7)]
+
+    # ------------------------------------------
+    # STEP 1: DISPLAY 7 DRAWN CARDS
+    # ------------------------------------------
+    try:
+        brain.screen.set_fill_color(Color.BLACK)
+        brain.screen.clear_screen()
+
+        brain.screen.set_pen_color(Color.WHITE)
+        brain.screen.set_cursor(1, 1)
+        brain.screen.print("START HAND:")
+
+        row2 = hand[0].short_text() + " " + hand[1].short_text() + " " + hand[2].short_text()
+        brain.screen.set_cursor(2, 1)
+        brain.screen.print(row2[:12])
+
+        row3 = hand[3].short_text() + " " + hand[4].short_text() + " " + hand[5].short_text()
+        brain.screen.set_cursor(3, 1)
+        brain.screen.print(row3[:12])
+
+        row4 = "7:" + hand[6].short_text()
+        brain.screen.set_cursor(4, 1)
+        brain.screen.print(row4[:12])
+
+        brain.screen.set_pen_color(Color.YELLOW)
+        brain.screen.set_cursor(5, 1)
+        brain.screen.print("PRESS CHECK")
+    except Exception:
+        pass
+
+    wait_for_check()
+
+    # ------------------------------------------
+    # STEP 2: USER SELECTS INITIAL TOP CARD
+    # ------------------------------------------
+    top_card, active_color, pending_draws = select_initial_top_card()
+    last_action = "START"
+
+    # ------------------------------------------
+    # STEP 3: MAIN GAME LOOP
+    # ------------------------------------------
+    while True:
+        # Clear screen to black background
+        try:
+            brain.screen.set_fill_color(Color.BLACK)
+            brain.screen.clear_screen()
+        except Exception:
+            pass
+
+        # Line 1: Hand count (White text)
+        try:
+            brain.screen.set_pen_color(Color.WHITE)
+            brain.screen.set_cursor(1, 1)
+            brain.screen.print(("HAND:" + str(len(hand)))[:12])
+        except Exception:
+            pass
+
+        # Line 2: Top Card (Color matching card)
+        try:
+            brain.screen.set_pen_color(get_text_color(top_card.color))
+            brain.screen.set_cursor(2, 1)
+            brain.screen.print(("TOP:" + top_card.short_text())[:12])
+        except Exception:
+            pass
+
+        # Line 3: Active Color (Color matching active color)
+        try:
+            brain.screen.set_pen_color(get_text_color(active_color))
+            brain.screen.set_cursor(3, 1)
+            brain.screen.print(("CLR:" + active_color[:3].upper())[:12])
+        except Exception:
+            pass
+
+        # Line 4: Action Status / Attack Warning
+        try:
+            if pending_draws > 0:
+                brain.screen.set_pen_color(Color.RED)
+                brain.screen.set_cursor(4, 1)
+                brain.screen.print(("ATK:+" + str(pending_draws))[:12])
+            else:
+                brain.screen.set_pen_color(Color.WHITE)
+                brain.screen.set_cursor(4, 1)
+                brain.screen.print(("ACT:" + last_action[:7])[:12])
+        except Exception:
+            pass
+
+        # Line 5: Check Button Prompt (Yellow text)
+        try:
+            brain.screen.set_pen_color(Color.YELLOW)
+            brain.screen.set_cursor(5, 1)
+            brain.screen.print("PRESS CHECK")
+        except Exception:
+            pass
+
+        wait_for_check()
+
+        # ==========================================
+        # ATTACK HANDLING (+2 / +4 DIRECT DRAW)
+        # ==========================================
+        if pending_draws > 0:
+            take_count = pending_draws
+            last_action = "TAKE +" + str(take_count)
+
+            try:
+                brain.screen.set_fill_color(Color.BLACK)
+                brain.screen.clear_screen()
+                brain.screen.set_pen_color(Color.RED)
+                brain.screen.set_cursor(1, 1)
+                brain.screen.print(("TAKE +" + str(take_count))[:12])
+                brain.screen.set_cursor(2, 1)
+                brain.screen.print("DRAWING...")
+                brain.screen.set_cursor(3, 1)
+                brain.screen.print("MOVING WHS")
+            except Exception:
+                pass
+
+            # Drive wheels to take penalty cards
+            drive_wheels()
+
+            for _ in range(take_count):
+                if deck:
+                    hand.append(deck.pop())
+
+            pending_draws = 0
+
+        else:
+            # ==========================================
+            # NORMAL TURN: PICK & PUT DOWN CARD
+            # ==========================================
+            playable = [c for c in hand if can_play(c, top_card, active_color)]
+
+            if playable:
+                chosen_card = select_card_to_put_down(playable)
+                
+                hand.remove(chosen_card)
+                top_card = chosen_card
+
+                if str(chosen_card.value) == "Draw Two":
+                    pending_draws = 2
+                    last_action = "ATK +2"
+                elif str(chosen_card.value) == "Draw Four":
+                    pending_draws = 4
+                    last_action = "ATK +4"
+                else:
+                    last_action = "PUT " + chosen_card.short_text()
+
+                active_color = random.choice(COLORS) if chosen_card.color == "Wild" else chosen_card.color
+            else:
+                last_action = "DRAWING"
+
+                try:
+                    brain.screen.set_fill_color(Color.BLACK)
+                    brain.screen.clear_screen()
+                    brain.screen.set_pen_color(Color.WHITE)
+                    brain.screen.set_cursor(1, 1)
+                    brain.screen.print("NO MATCH")
+                    brain.screen.set_cursor(2, 1)
+                    brain.screen.print("DRAWING...")
+                    brain.screen.set_cursor(3, 1)
+                    brain.screen.print("MOVING WHS")
+                except Exception:
+                    pass
+
+                drive_wheels()
+
+                if deck:
+                    drawn = deck.pop()
+                    hand.append(drawn)
+                    last_action = "DREW " + drawn.short_text()
+
+        # Win Condition
+        if len(hand) == 0:
+            try:
+                brain.screen.set_fill_color(Color.BLACK)
+                brain.screen.clear_screen()
+                brain.screen.set_pen_color(Color.GREEN)
+                brain.screen.set_cursor(2, 1)
+                brain.screen.print("ROBOT WINS!")
+                brain.screen.set_cursor(3, 1)
+                brain.screen.print("UNO!")
+            except Exception:
+                pass
+            break
+
+
+run_robot()
