@@ -306,6 +306,227 @@ def display_loading_screen():
     brain.screen.print("Loading Cards...")
     brain.screen.set_pen_color(Color.WHITE)
 
+# ==========================================
+# 5-WAVE CALL OF DUTY DEFENSE MINI-GAME
+# ==========================================
+
+def play_call_of_duty_minigame():
+    """5-Wave Call of Duty mini-game with 5 ammo, 'PEW PEW!' visual sound effects, and fast progressive speed."""
+    clear_screen()
+    brain.screen.set_fill_color(Color.BLACK)
+    brain.screen.set_pen_color(Color.GREEN)
+    brain.screen.set_cursor(2, 2)
+    brain.screen.print("CALL OF DUTY")
+    brain.screen.set_cursor(4, 1)
+    brain.screen.set_pen_color(Color.WHITE)
+    brain.screen.print("L/R: AIM | CHECK: FIRE")
+    time.sleep(1.5)
+
+    total_waves = 5
+    waves_cleared = 0
+    ammo = 5  # Exactly 5 ammo
+    player_x = 80
+    
+    wait_for_button_release()
+
+    for wave in range(1, total_waves + 1):
+        target_x = 20
+        target_y = 35
+        # Progressive speed scaling per wave
+        speed = int(2 + (wave ** 1.8))
+        target_dx = speed
+        wave_cleared = False
+
+        while ammo > 0 and not wave_cleared:
+            clear_screen()
+            brain.screen.set_fill_color(Color.BLACK)
+
+            # Move Target
+            target_x += target_dx
+            if target_x >= 140 or target_x <= 15:
+                target_dx *= -1
+
+            # Draw Target
+            brain.screen.set_pen_color(Color.RED)
+            brain.screen.draw_rectangle(target_x - 8, target_y - 8, 16, 16)
+            brain.screen.draw_circle(target_x, target_y - 12, 5)
+
+            # Player Aim Controls
+            if brain.buttonLeft.pressing() and player_x > 15:
+                player_x -= 6
+            elif brain.buttonRight.pressing() and player_x < 145:
+                player_x += 6
+
+            # Draw Player Gun & Crosshair
+            brain.screen.set_pen_color(Color.CYAN)
+            brain.screen.draw_line(player_x, 110, player_x, 95)
+            brain.screen.draw_circle(player_x, 70, 6)
+            brain.screen.draw_line(player_x - 10, 70, player_x + 10, 70)
+            brain.screen.draw_line(player_x, 60, player_x, 80)
+
+            # Draw HUD
+            brain.screen.set_pen_color(Color.YELLOW)
+            brain.screen.set_cursor(1, 1)
+            brain.screen.print("WAVE:" + str(wave) + "/5 AMMO:" + str(ammo))
+
+            # Check Fire Button
+            if brain.buttonCheck.pressing():
+                wait_for_button_release()
+                ammo -= 1
+                brain.play_sound(SoundType.SIREN)
+
+                # Show PEW PEW! text & shot flash
+                brain.screen.set_pen_color(Color.YELLOW)
+                brain.screen.set_cursor(5, 5)
+                brain.screen.print("PEW PEW!")
+
+                brain.screen.set_pen_color(Color.WHITE)
+                brain.screen.draw_line(player_x, 95, player_x, 20)
+                time.sleep(0.12)
+
+                # Hit Detection
+                if abs(player_x - target_x) <= 10:
+                    waves_cleared += 1
+                    wave_cleared = True
+                    brain.play_sound(SoundType.TADA)
+                    
+                    for spark in range(4):
+                        brain.screen.set_pen_color(Color.YELLOW if spark % 2 == 0 else Color.RED)
+                        brain.screen.draw_circle(target_x, target_y, 10 + (spark * 4))
+                        time.sleep(0.04)
+
+            time.sleep(0.04)
+
+        if not wave_cleared:
+            break
+
+    # Outcome
+    clear_screen()
+    if waves_cleared == total_waves:
+        brain.screen.set_pen_color(Color.GREEN)
+        brain.screen.set_cursor(2, 1)
+        brain.screen.print("5 WAVES CLEARED!")
+        brain.screen.set_cursor(4, 1)
+        brain.screen.print("DEFENSE SUCCESS!")
+        brain.play_sound(SoundType.TADA)
+        time.sleep(1.8)
+        return True
+    else:
+        brain.screen.set_pen_color(Color.RED)
+        brain.screen.set_cursor(2, 2)
+        brain.screen.print("DEFENSE FAILED!")
+        brain.screen.set_cursor(4, 1)
+        brain.screen.print("2X PENALTY DRAW!")
+        brain.play_sound(SoundType.WRONG_WAY)
+        time.sleep(1.8)
+        return False
+
+# ==========================================
+# BATIM END CREDITS AUDIO & DISASTER ANIMATIONS
+# ==========================================
+
+def play_batim_end_credits_theme():
+    """Plays the Bendy and the Ink Machine end credits theme notes."""
+    melody = [
+        (3, 8, 220), (3, 8, 220), (3, 11, 330), (3, 8, 220),
+        (3, 6, 220), (3, 8, 440), (3, 3, 220), (3, 6, 220),
+        (3, 8, 220), (3, 11, 330), (4, 1, 220), (3, 11, 220),
+        (3, 8, 550)
+    ]
+    
+    for octave, note, duration in melody:
+        try:
+            brain.play_note(octave, note, duration)
+        except Exception:
+            brain.play_sound(SoundType.SIREN)
+        time.sleep(duration / 1000.0)
+
+def animate_meteor_strike():
+    brain.play_sound(SoundType.SIREN)
+    for step in range(6):
+        clear_screen()
+        brain.screen.set_pen_color(Color.ORANGE)
+        x = 10 + (step * 22)
+        y = 5 + (step * 16)
+        brain.screen.draw_circle(x, y, 12)
+        brain.screen.draw_line(0, 0, x, y)
+        time.sleep(0.08)
+        
+    for flash in range(4):
+        brain.screen.set_fill_color(Color.RED if flash % 2 == 0 else Color.YELLOW)
+        brain.screen.clear_screen()
+        brain.screen.set_pen_color(Color.WHITE)
+        brain.screen.draw_circle(80, 54, 45 + (flash * 10))
+        brain.play_sound(SoundType.WRONG_WAY)
+        time.sleep(0.08)
+
+def animate_volcano_blast():
+    brain.play_sound(SoundType.SIREN)
+    for step in range(5):
+        clear_screen()
+        brain.screen.set_pen_color(Color.RED)
+        brain.screen.draw_line(30, 100, 60, 60)
+        brain.screen.draw_line(130, 100, 100, 60)
+        brain.screen.draw_line(60, 60, 100, 60)
+        brain.screen.set_pen_color(Color.YELLOW)
+        for line_offset in range(-30, 31, 15):
+            brain.screen.draw_line(80, 60, 80 + line_offset, 10 - (step * 2))
+        time.sleep(0.1)
+
+def animate_supernova():
+    brain.play_sound(SoundType.SIREN)
+    colors = [Color.BLUE, Color.CYAN, Color.WHITE, Color.YELLOW, Color.RED]
+    for r in range(5, 65, 10):
+        brain.screen.set_fill_color(colors[(r // 10) % len(colors)])
+        brain.screen.clear_screen()
+        brain.screen.set_pen_color(Color.WHITE)
+        brain.screen.draw_circle(80, 54, r)
+        brain.play_sound(SoundType.WRONG_WAY)
+        time.sleep(0.06)
+
+def animate_system_overload():
+    brain.play_sound(SoundType.SIREN)
+    for countdown in range(3, 0, -1):
+        clear_screen()
+        brain.screen.set_pen_color(Color.RED)
+        brain.screen.set_cursor(2, 2)
+        brain.screen.print("OVERLOAD ALERT!")
+        brain.screen.set_cursor(4, 5)
+        brain.screen.set_pen_color(Color.YELLOW)
+        brain.screen.print("CRASH IN: " + str(countdown))
+        time.sleep(0.25)
+
+    if motor_1 and motor_5:
+        motor_1.spin_for(FORWARD, 15, DEGREES, wait=False)
+        motor_5.spin_for(REVERSE, 15, DEGREES, wait=True)
+        motor_1.spin_for(REVERSE, 15, DEGREES, wait=False)
+        motor_5.spin_for(FORWARD, 15, DEGREES, wait=True)
+
+def trigger_disaster_choice():
+    disasters = ["Meteor Strike", "Volcano Blast", "Supernova", "System Overload"]
+    chosen = select_option_menu("Choose Disaster:", disasters)
+    
+    if chosen == "Meteor Strike":
+        animate_meteor_strike()
+    elif chosen == "Volcano Blast":
+        animate_volcano_blast()
+    elif chosen == "Supernova":
+        animate_supernova()
+    else:
+        animate_system_overload()
+        
+    play_batim_end_credits_theme()
+        
+    brain.screen.set_fill_color(Color.BLACK)
+    clear_screen()
+    brain.screen.set_pen_color(Color.RED)
+    brain.screen.set_cursor(2, 4)
+    brain.screen.print("X_X BOOM! X_X")
+    brain.screen.set_cursor(4, 2)
+    brain.screen.set_pen_color(Color.YELLOW)
+    brain.screen.print("GAME OVER - YOU LOST")
+    time.sleep(2)
+
 def select_option_menu(title, options):
     cursor = 0
     wait_for_button_release()
@@ -373,46 +594,62 @@ def draw_card(deck):
 
 def start_game(deck):
     hand = []
-    for i in range(7):
+    for i in range(2):
         card = draw_card(deck)
         if card:
             hand.append(card)
     return hand
 
 def handle_attack_menu(hand, deck):
-    attacks = ["Draw 2", "Draw 4", "Skip", "Cancel"]
+    attacks = ["Draw 2 Attack", "Draw 4 Attack", "Skip Attack", "Disaster (Lose)", "Cancel"]
     chosen_attack = select_option_menu("Under Attack?", attacks)
     
     if chosen_attack == "Cancel":
-        return
+        return None
         
-    if chosen_attack == "Skip":
+    if chosen_attack == "Disaster (Lose)":
+        trigger_disaster_choice()
+        return "LOST"
+        
+    if chosen_attack == "Skip Attack":
         clear_screen()
         brain.screen.set_pen_color(Color.YELLOW)
         brain.screen.print("Turn Skipped!")
         time.sleep(1.5)
-        return
+        return None
         
-    cards_to_draw = 2 if chosen_attack == "Draw 2" else 4
-    defensive_cards = [c for c in hand if chosen_attack in c or "Wild Draw 4" in c]
+    cards_to_draw = 2 if chosen_attack == "Draw 2 Attack" else 4
+    defensive_cards = [c for c in hand if ("Draw 2" in c and cards_to_draw == 2) or "Wild Draw 4" in c]
     
     options = []
     if len(defensive_cards) > 0:
         options.append("Defend Card")
+    options.append("Play Call of Duty")
     options.append("Draw " + str(cards_to_draw) + " Cards")
     
-    choice = select_option_menu("Attack Action:", options)
+    choice = select_option_menu("Defense Action:", options)
     
     if choice == "Defend Card":
         def_card = select_option_menu("Defend With:", defensive_cards)
         hand.remove(def_card)
         deliver_card_to_center(def_card)
+    elif choice == "Play Call of Duty":
+        won = play_call_of_duty_minigame()
+        if not won:
+            # 2x penalty if losing Call of Duty (+2 -> 4 cards, +4 -> 8 cards)
+            penalty_cards = cards_to_draw * 2
+            fetch_starting_cards()
+            for _ in range(penalty_cards):
+                drawn = draw_card(deck)
+                if drawn:
+                    hand.append(drawn)
     else:
         fetch_starting_cards()
         for _ in range(cards_to_draw):
             drawn = draw_card(deck)
             if drawn:
                 hand.append(drawn)
+    return None
 
 def view_hand_screen(hand, deck):
     cursor = 0
@@ -449,9 +686,11 @@ def view_hand_screen(hand, deck):
             wait_for_button_release()
             selected = items[cursor]
             if selected == "Menu / Attack":
-                handle_attack_menu(hand, deck)
+                result = handle_attack_menu(hand, deck)
+                if result == "LOST":
+                    return "LOST"
             elif selected == "[ Ready / Play ]":
-                return
+                return "PLAY"
             
         wait_for_button_release()
 
@@ -567,7 +806,10 @@ def main():
     fetch_starting_cards()
 
     while len(hand) > 0:
-        view_hand_screen(hand, deck)
+        res = view_hand_screen(hand, deck)
+        if res == "LOST":
+            return
+            
         top_card = input_top_card_from_controller()
         
         legal_cards = get_legal_cards(hand, top_card)
